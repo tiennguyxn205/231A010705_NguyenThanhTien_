@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<title>King Movies</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+ --bg:#141414;--text:#fff;--card:#1f1f1f;
+ --accent:#e50914;--sidebar:#181818
+}
+[data-theme="light"]{
+ --bg:#f4f4f4;--text:#111;--card:#fff;--sidebar:#eaeaea
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
+body{background:var(--bg);color:var(--text)}
+
+header{
+ height:60px;background:#000;
+ display:flex;justify-content:space-between;align-items:center;
+ padding:0 15px
+}
+.logo{color:var(--accent);font-size:1.5rem;font-weight:bold}
+.menu-btn{font-size:1.4rem;display:none}
+
+.container{
+ display:grid;
+ grid-template-columns:250px 1fr;
+ min-height:calc(100vh - 60px)
+}
+
+/* SIDEBAR */
+aside{
+ background:var(--sidebar);
+ padding:20px
+}
+aside h3{margin:10px 0}
+aside input{width:100%;padding:8px;margin-bottom:10px}
+
+/* MOBILE SIDEBAR */
+aside.mobile{
+ position:fixed;top:60px;left:-260px;
+ width:250px;height:100%;z-index:10;
+ transition:.3s
+}
+aside.mobile.active{left:0}
+.overlay{
+ display:none;position:fixed;inset:0;
+ background:rgba(0,0,0,.6);z-index:9
+}
+.overlay.active{display:block}
+
+/* MOVIES */
+main{padding:20px}
+.movie-grid{
+ display:grid;
+ grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+ gap:20px
+}
+.movie-card{
+ background:var(--card);
+ border-radius:6px;overflow:hidden;
+ cursor:pointer;position:relative;
+ transition:.3s
+}
+.movie-card:hover{transform:scale(1.08)}
+.movie-card img{
+ width:100%;height:260px;object-fit:cover
+}
+.movie-info{
+ padding:8px;font-size:.9rem
+}
+.rating{color:gold;font-size:.85rem}
+
+/* PLAY */
+.play-btn{
+ position:absolute;inset:0;
+ background:rgba(0,0,0,.6);
+ display:flex;justify-content:center;align-items:center;
+ opacity:0;transition:.3s
+}
+.movie-card:hover .play-btn{opacity:1}
+.play-btn button{
+ background:var(--accent);border:none;
+ padding:10px 18px;color:#fff;border-radius:4px
+}
+
+/* MODAL */
+.modal{
+ display:none;position:fixed;inset:0;
+ background:rgba(0,0,0,.7);
+ justify-content:center;align-items:center;z-index:20
+}
+.modal-content{
+ background:var(--card);
+ padding:20px;border-radius:8px;
+ display:flex;gap:20px;max-width:600px;
+ position:relative
+}
+.modal img{width:200px;border-radius:6px}
+.close{position:absolute;top:10px;right:15px;cursor:pointer}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+ .container{grid-template-columns:1fr}
+ aside.desktop{display:none}
+ aside.mobile{display:block}
+ .menu-btn{display:inline}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+ <div class="logo">KING MOVIES</div>
+ <div>
+   <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+   <button onclick="toggleTheme()">🌙 / ☀️</button>
+ </div>
+</header>
+
+<div class="overlay" onclick="toggleSidebar()"></div>
+
+<div class="container">
+
+<!-- SIDEBAR DESKTOP -->
+<aside class="desktop">
+ <h3>Tìm kiếm</h3>
+ <input id="search" placeholder="🔍 Nhập tên phim">
+ <h3>Thể loại</h3>
+ <div id="genres"></div>
+</aside>
+
+<!-- SIDEBAR MOBILE -->
+<aside class="mobile" id="sidebar">
+ <h3>Tìm kiếm</h3>
+ <input id="searchMobile" placeholder="🔍 Nhập tên phim">
+ <h3>Thể loại</h3>
+ <div id="genresMobile"></div>
+</aside>
+
+<main>
+ <h2>Danh sách phim</h2>
+ <main>
+  <h2>Danh sách phim</h2>
+
+  <!-- LINK KẾT QUẢ BÀI TẬP 30 -->
+  <div class="result-link">
+    <a href="c:\Users\nttbo\OneDrive\图片\Screenshots\bai30.png" target="_blank">
+      📊 Xem kết quả Bài tập 30
+    </a>
+  </div>
+
+  <div class="movie-grid" id="movies"></div>
+</main>
+
+ <div class="movie-grid" id="movies"></div>
+</main>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+ <div class="modal-content">
+  <span class="close" onclick="closeModal()">×</span>
+  <img id="modalImg">
+  <div>
+   <h2 id="modalTitle"></h2>
+   <p id="modalMeta"></p>
+   <p id="modalDesc"></p>
+   <button onclick="watchFromModal()">▶ Xem ngay</button>
+  </div>
+ </div>
+</div>
+
+<script>
+const movies=[
+ {id:1,title:"Avatar",year:2009,rating:4.8,genres:["Phiêu lưu"],poster:"pt1.jpg",desc:"Hành tinh Pandora kỳ vĩ."},
+ {id:2,title:"Transformers",year:2017,rating:4.5,genres:["Hành động"],poster:"pt2.jpg",desc:"Cuộc chiến robot."},
+ {id:3,title:"World War Z",year:2013,rating:4.6,genres:["Kinh dị"],poster:"pt6.webp",desc:"Đại dịch zombie."},
+ {id:4,title:"Tìm Xác",year:2025,rating:4.2,genres:["Kinh dị"],poster:"pt3.jpeg",desc:"Hành trình rùng rợn."},
+ {id:5,title:"Thiên Đường Máu",year:2025,rating:4.4,genres:["Hành động"],poster:"pt4.jpg",desc:"Thế giới ngầm."},
+ {id:6,title:"Điều Ước Cuối Cùng",year:2025,rating:4.0,genres:["Tình cảm"],poster:"pt5.jpg",desc:"Câu chuyện xúc động."}
+];
+
+const box=document.getElementById("movies");
+const genres=document.getElementById("genres");
+const genresM=document.getElementById("genresMobile");
+const search=document.getElementById("search");
+const searchM=document.getElementById("searchMobile");
+let selected=new Set(),keyword="",currentMovie=null;
+
+/* RENDER */
+function render(list){
+ box.innerHTML="";
+ list.forEach(m=>{
+  box.innerHTML+=`
+   <div class="movie-card" onclick="openModal(${m.id})">
+    <img src="${m.poster}">
+    <div class="play-btn">
+     <button onclick="event.stopPropagation();watchMovie(${m.id})">▶ Xem ngay</button>
+    </div>
+    <div class="movie-info">
+     <strong>${m.title}</strong> (${m.year})
+     <div class="rating">⭐ ${m.rating}</div>
+     <div>${m.genres.join(", ")}</div>
+    </div>
+   </div>`;
+ });
+}
+
+/* GENRES */
+const all=new Set();
+movies.forEach(m=>m.genres.forEach(g=>all.add(g)));
+all.forEach(g=>{
+ const html=`<label><input type="checkbox" value="${g}"> ${g}</label>`;
+ genres.innerHTML+=html;
+ genresM.innerHTML+=html;
+});
+document.querySelectorAll("input[type=checkbox]").forEach(cb=>{
+ cb.onchange=()=>{
+  cb.checked?selected.add(cb.value):selected.delete(cb.value);
+  filter();
+ };
+});
+
+/* FILTER */
+function filter(){
+ let r=movies;
+ if(selected.size) r=r.filter(m=>m.genres.some(g=>selected.has(g)));
+ if(keyword) r=r.filter(m=>m.title.toLowerCase().includes(keyword));
+ render(r);
+}
+
+/* SEARCH */
+let t;
+[search,searchM].forEach(inp=>{
+ inp.oninput=e=>{
+  clearTimeout(t);
+  t=setTimeout(()=>{keyword=e.target.value.toLowerCase();filter()},400);
+ };
+});
+
+/* MODAL */
+function openModal(id){
+ currentMovie=movies.find(m=>m.id===id);
+ modal.style.display="flex";
+ modalImg.src=currentMovie.poster;
+ modalTitle.innerText=currentMovie.title;
+ modalMeta.innerText=`📅 ${currentMovie.year} | ⭐ ${currentMovie.rating} | 🎭 ${currentMovie.genres.join(", ")}`;
+ modalDesc.innerText=currentMovie.desc;
+}
+function closeModal(){modal.style.display="none"}
+function watchFromModal(){watchMovie(currentMovie.id)}
+
+/* NAV */
+function watchMovie(id){location.href=`watch.html?id=${id}`}
+function toggleTheme(){
+ const html=document.documentElement;
+ html.setAttribute("data-theme",
+  html.getAttribute("data-theme")==="dark"?"light":"dark");
+}
+function toggleSidebar(){
+ sidebar.classList.toggle("active");
+ document.querySelector(".overlay").classList.toggle("active");
+}
+
+render(movies);
+
+</script>
+</body>
+<div class="result-link">
+  <a href="baitap30.html" target="_blank">
+    📄 Xem kết quả Bài tập 30
+  </a>
+</div>
+
+</html>
